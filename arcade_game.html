@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MICROBIA: Quest for the Cellular Realm | BTY323 Microbiology</title>
+  <style>
+    :root {
+      --bg-dark: #080c16;
+      --bg-card: rgba(16, 24, 44, 0.85);
+      --primary: #00f5d4;
+      --primary-glow: rgba(0, 245, 212, 0.4);
+      --secondary: #7b2cbf;
+      --accent: #f72585;
+      --accent-gold: #ffd166;
+      --cyan: #00bbf9;
+      --text: #f8f9fa;
+      --text-muted: #94a3b8;
+      --border: rgba(0, 245, 212, 0.25);
+      --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-code: 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      font-family: var(--font-main);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(8, 12, 22, 0.95) 0%, rgba(8, 12, 22, 0) 100%);
+      z-index: 100;
+    }
+
+    .badge-course {
+      background: rgba(0, 245, 212, 0.12);
+      border: 1px solid var(--primary);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-course span.live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--primary);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .header-controls { display: flex; align-items: center; gap: 12px; }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: rgba(0, 245, 212, 0.2);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas#gameCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: radial-gradient(circle at center, #0e172a 0%, #060912 100%);
+    }
+
+    .screen-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(6, 9, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      transform: scale(0.98);
+      padding: 20px;
+    }
+
+    .screen-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 245, 212, 0.15);
+      border-radius: 18px;
+      padding: 32px 40px;
+      max-width: 820px;
+      width: 92%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    h1.hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #00f5d4, #00bbf9, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    p.hero-sub {
+      color: var(--text-muted);
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+
+    .student-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px dashed rgba(0, 245, 212, 0.3);
+      margin-bottom: 24px;
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .input-group input {
+      background: rgba(10, 15, 30, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .syllabus-stages {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stage-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+
+    .stage-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stage-card h3 { font-size: 1.05rem; color: #fff; margin-bottom: 6px; }
+    .stage-card p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+
+    .stage-complexity {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: bold;
+    }
+    .lvl-1 { background: rgba(0, 245, 212, 0.15); color: var(--primary); }
+    .lvl-2 { background: rgba(0, 187, 249, 0.15); color: var(--cyan); }
+    .lvl-3 { background: rgba(247, 37, 133, 0.2); color: var(--accent); }
+
+    .btn-cta {
+      background: linear-gradient(135deg, #00f5d4 0%, #00bbf9 100%);
+      color: #050814;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 16px 36px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0, 245, 212, 0.4);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: block;
+      width: 100%;
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(0, 245, 212, 0.6);
+    }
+
+    #hud {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      padding: 10px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .hud-box {
+      background: rgba(10, 15, 30, 0.82);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 18px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+    }
+
+    .hud-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .hud-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-family: var(--font-code);
+      color: var(--primary);
+    }
+
+    .hud-sub { font-size: 0.75rem; color: var(--accent-gold); }
+
+    .progress-bar-container {
+      width: 200px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--cyan));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    #bottom-prompt {
+      position: absolute;
+      bottom: 24px;
+      background: rgba(10, 15, 30, 0.9);
+      border: 1px solid var(--primary);
+      border-radius: 30px;
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 0 20px var(--primary-glow);
+      z-index: 20;
+      pointer-events: auto;
+    }
+
+    .key-badge {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+    }
+
+    #bio-quiz-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      background: rgba(13, 20, 38, 0.96);
+      border: 2px solid var(--primary);
+      border-radius: 18px;
+      padding: 28px 34px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 40px rgba(0, 245, 212, 0.4);
+      z-index: 60;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    #bio-quiz-modal.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+
+    .quiz-unit-pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(247, 37, 133, 0.2);
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .quiz-question {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.45;
+      margin-bottom: 18px;
+    }
+
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+    .quiz-opt-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quiz-opt-btn:hover {
+      background: rgba(0, 245, 212, 0.15);
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-feedback { font-size: 0.9rem; font-weight: 600; min-height: 24px; margin-top: 8px; }
+
+    #certificate-screen {
+      background: radial-gradient(circle at center, #111a33 0%, #060913 100%);
+    }
+
+    .cert-frame {
+      background: #0d1527;
+      border: 3px double #ffd166;
+      border-radius: 16px;
+      padding: 34px 44px;
+      box-shadow: 0 0 50px rgba(255, 209, 102, 0.25);
+      max-width: 860px;
+      width: 95%;
+      text-align: center;
+      position: relative;
+    }
+
+    .cert-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14rem;
+      color: rgba(255, 255, 255, 0.02);
+      font-weight: 900;
+      pointer-events: none;
+    }
+
+    .cert-univ { font-size: 1.4rem; font-weight: 800; letter-spacing: 2px; color: #ffd166; }
+    .cert-dept { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
+    .cert-title { font-size: 2.1rem; font-weight: 800; color: #fff; margin: 14px 0 6px 0; }
+    .cert-name {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin: 10px 0;
+      text-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .cert-details-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 14px;
+      border-radius: 10px;
+      margin: 18px 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cert-stat-label { font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); }
+    .cert-stat-val { font-size: 1.1rem; font-weight: 700; color: #fff; font-family: var(--font-code); }
+
+    .cert-badges-row { display: flex; justify-content: center; gap: 14px; margin: 18px 0; }
+    .cert-badge {
+      background: rgba(0, 245, 212, 0.1);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .cert-actions { display: flex; justify-content: center; gap: 16px; margin-top: 24px; }
+
+    #codex-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      background: rgba(11, 16, 32, 0.98);
+      border: 1px solid var(--primary);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 880px;
+      width: 92%;
+      max-height: 85vh;
+      overflow-y: auto;
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+    }
+
+    #codex-modal.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+
+    .codex-unit { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .codex-unit h3 { color: var(--primary); font-size: 1.25rem; margin-bottom: 8px; }
+    .codex-unit p, .codex-unit li { color: #cbd5e1; font-size: 0.88rem; line-height: 1.6; }
+    .codex-unit ul { margin-left: 20px; margin-top: 6px; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #certificate-screen, #certificate-screen * { visibility: visible; }
+      #certificate-screen { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; }
+      .cert-frame { border: 4px solid #333 !important; background: white !important; color: black !important; box-shadow: none !important; }
+      .cert-name { color: #0b525b !important; text-shadow: none !important; }
+      .cert-univ { color: #d4a373 !important; }
+      .cert-actions, #top-bar, #hud, #bottom-prompt { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header id="top-bar">
+    <div class="badge-course">
+      <span class="live-dot"></span>
+      <span>BTY323: MICROBIOLOGY • UNITS I - III</span>
+    </div>
+    <div class="header-controls">
+      <button class="btn-icon" id="btn-codex">📖 Study Syllabus Codex</button>
+      <button class="btn-icon" id="btn-sound">🔊 Sound: ON</button>
+      <button class="btn-icon" id="btn-pause">⏸️ Pause</button>
+    </div>
+  </header>
+
+  <!-- In-Game Canvas HUD -->
+  <div id="hud" style="display: none;">
+    <div class="hud-box">
+      <div class="hud-label">CURRENT OBJECTIVE / LEVEL</div>
+      <div class="hud-value" id="hud-level-name">UNIT I: CELLULAR ARCHITECT</div>
+      <div class="hud-sub" id="hud-sub-desc">Prokaryotic vs Eukaryotic Organization</div>
+    </div>
+
+    <div class="hud-box" style="text-align: center;">
+      <div class="hud-label">STAGE PROGRESSION</div>
+      <div class="progress-bar-container">
+        <div class="progress-fill" id="hud-progress-fill"></div>
+      </div>
+      <div class="hud-sub" id="hud-progress-text" style="margin-top: 4px;">0% Completed</div>
+    </div>
+
+    <div class="hud-box" style="text-align: right;">
+      <div class="hud-label">MICROBIAL MASTERY SCORE</div>
+      <div class="hud-value" id="hud-score">0000</div>
+      <div class="hud-sub">STREAK: <span id="hud-streak" style="color: var(--accent);">0x</span></div>
+    </div>
+  </div>
+
+  <!-- Bottom Guidance Prompt -->
+  <div id="bottom-prompt" style="display: none;">
+    <span id="prompt-icon">💡</span>
+    <span id="prompt-text">Use <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> or <span class="key-badge">Mouse</span> to steer the Nanoprobe.</span>
+  </div>
+
+  <!-- Game Main Viewport -->
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <!-- SCREEN 1: START / MENU SCREEN -->
+  <div class="screen-overlay active" id="start-screen">
+    <div class="modal-card">
+      <h1 class="hero-title">MICROBIA: QUEST FOR LIFE</h1>
+      <p class="hero-sub">Academic Syllabus Adventure • BTY323: Microbiology (Units 1 to 3)</p>
+
+      <!-- Student Credentials Form -->
+      <div class="student-info-grid">
+        <div class="input-group">
+          <label>Student Full Name</label>
+          <input type="text" id="input-student-name" placeholder="Enter Your Name" value="Aarav Sharma">
+        </div>
+        <div class="input-group">
+          <label>Registration / Roll Number</label>
+          <input type="text" id="input-student-roll" placeholder="e.g. 12109845" value="12214983">
+        </div>
+        <div class="input-group">
+          <label>University / Institution</label>
+          <input type="text" id="input-student-univ" value="Lovely Professional University (LPU)" readonly>
+        </div>
+        <div class="input-group">
+          <label>Course Title & Code</label>
+          <input type="text" id="input-student-course" value="BTY323: Microbiology (Credits: 2)" readonly>
+        </div>
+      </div>
+
+      <!-- Syllabus Road Map -->
+      <div class="syllabus-stages">
+        <div class="stage-card">
+          <div class="stage-tag">Level 1 • Unit I</div>
+          <h3>The Cellular Vanguard</h3>
+          <p>History (Pasteur, Koch, Leeuwenhoek) and Prokaryotic vs Eukaryotic structures (Peptidoglycan wall, 70S ribosomes, Flagella).</p>
+          <span class="stage-complexity lvl-1">Complexity: Moderate</span>
+        </div>
+        <div class="stage-card">
+          <div class="stage-tag">Level 2 • Unit II</div>
+          <h3>Colony Evolution & Growth</h3>
+          <p>Microbial diversity (Gram+/- bacteria, Phages), Selective MacConkey media, and Kinetic Growth Curve (Lag, Log, Stationary).</p>
+          <span class="stage-complexity lvl-2">Complexity: Advanced</span>
+        </div>
+        <div class="stage-card">
+          <div class="stage-tag">Level 3 • Unit III</div>
+          <h3>The Metabolic Engine</h3>
+          <p>Respiration vs Fermentation, Rotary ATP Synthase Proton Motive Force, and the Entner-Doudoroff (ED) Pathway.</p>
+          <span class="stage-complexity lvl-3">Complexity: Climax Boss</span>
+        </div>
+      </div>
+
+      <button class="btn-cta" id="btn-start-game">⚡ Launch Microbial Adventure</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: BIO-QUIZ INTERACTIVE MODAL -->
+  <div id="bio-quiz-modal">
+    <div class="quiz-unit-pill" id="quiz-badge">UNIT I: HISTORICAL SCOPE</div>
+    <div class="quiz-question" id="quiz-question">Question goes here...</div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+  </div>
+
+  <!-- SCREEN 3: LEVEL COMPLETE OVERLAY -->
+  <div class="screen-overlay" id="level-clear-screen">
+    <div class="modal-card" style="text-align: center; max-width: 620px;">
+      <div style="font-size: 3.5rem; margin-bottom: 10px;">🧬✨</div>
+      <h2 style="font-size: 2.2rem; color: var(--primary); text-transform: uppercase;" id="level-clear-title">UNIT I CLEARED!</h2>
+      <p style="color: var(--text-muted); margin: 12px 0 24px;" id="level-clear-msg">You have successfully mastered the unit concepts!</p>
+
+      <div style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 12px; margin-bottom: 24px; text-align: left;">
+        <div style="color: var(--accent-gold); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">SYLLABUS MASTERY MILESTONE:</div>
+        <div style="color: #e2e8f0; font-size: 0.9rem;" id="level-clear-concepts">
+          ✔ Concept mastered successfully!
+        </div>
+      </div>
+
+      <button class="btn-cta" id="btn-next-level">Proceed to Next Unit ➔</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: FINAL ACADEMIC CERTIFICATE & CREDITS -->
+  <div class="screen-overlay" id="certificate-screen">
+    <div class="cert-frame">
+      <div class="cert-watermark">BTY323</div>
+      <div class="cert-header">
+        <div class="cert-univ" id="cert-univ-display">LOVELY PROFESSIONAL UNIVERSITY</div>
+        <div class="cert-dept">Department of Biotechnology • School of Bioengineering & Biosciences</div>
+      </div>
+
+      <div class="cert-present">This Certificate of High Academic Distinction is presented to</div>
+      <div class="cert-name" id="cert-student-name">AARAV SHARMA</div>
+      <div class="cert-present">Registration / Roll No: <strong id="cert-student-roll" style="color: #ffd166;">12214983</strong></div>
+
+      <div class="cert-title">MICROBIOLOGY MASTERY DIPLOMA</div>
+      <p style="color: #cbd5e1; font-size: 0.92rem; max-width: 680px; margin: 0 auto; line-height: 1.5;">
+        Having demonstrated exemplary proficiency across all core competencies of <strong>BTY323: Microbiology</strong>, covering Unit I (Cell Organization & Scope), Unit II (Microbial Diversity & Growth Kinetics), and Unit III (Respiration, Fermentation & Entner-Doudoroff Pathways).
+      </p>
+
+      <div class="cert-details-grid">
+        <div>
+          <div class="cert-stat-label">Final Academic Score</div>
+          <div class="cert-stat-val" id="cert-final-score">9850</div>
+        </div>
+        <div>
+          <div class="cert-stat-label">Syllabus Accuracy</div>
+          <div class="cert-stat-val" id="cert-accuracy">96.4%</div>
+        </div>
+        <div>
+          <div class="cert-stat-label">Performance Grade</div>
+          <div class="cert-stat-val" style="color: #00f5d4;">GRADE O (OUTSTANDING)</div>
+        </div>
+      </div>
+
+      <div class="cert-badges-row">
+        <div class="cert-badge">🏆 Unit I: Cell Architect</div>
+        <div class="cert-badge">🧫 Unit II: Growth Master</div>
+        <div class="cert-badge">⚡ Unit III: Metabolic Titan</div>
+      </div>
+
+      <div class="cert-actions">
+        <button class="btn-cta" style="width: auto; padding: 12px 30px;" onclick="window.print()">🖨️ Print / Save Certificate (PDF)</button>
+        <button class="btn-icon" style="padding: 12px 24px; font-size: 1rem;" id="btn-replay">🔄 Replay Quest</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: STUDY SYLLABUS CODEX MODAL -->
+  <div id="codex-modal">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="color: var(--primary);">📚 BTY323 MICROBIOLOGY STUDY CODEX</h2>
+      <button class="btn-icon" id="btn-close-codex">✕ Close</button>
+    </div>
+
+    <div class="codex-unit">
+      <h3>Unit I: Introduction to Microbiology & Cellular Organization</h3>
+      <ul>
+        <li><strong>Antonie van Leeuwenhoek:</strong> First observed living microbes ("animalcules").</li>
+        <li><strong>Louis Pasteur:</strong> Disproved spontaneous generation via swan-neck flasks; established Germ Theory.</li>
+        <li><strong>Robert Koch:</strong> Formulated Koch's Postulates linking specific pathogens to specific diseases.</li>
+        <li><strong>Prokaryotes vs Eukaryotes:</strong> Prokaryotes lack membrane-bound nuclei; contain 70S ribosomes (50S + 30S). Eukaryotes have 80S ribosomes (60S + 40S).</li>
+        <li><strong>Peptidoglycan:</strong> Alternating N-acetylglucosamine (NAG) and N-acetylmuramic acid (NAM) cross-linked by peptide chains.</li>
+      </ul>
+    </div>
+
+    <div class="codex-unit">
+      <h3>Unit II: Diversity of Microbial World & Growth Kinetics</h3>
+      <ul>
+        <li><strong>Three Domains (Woese):</strong> Bacteria (ester-linked lipids), Archaea (ether-linked branched lipids), Eukarya.</li>
+        <li><strong>Viruses & Phages:</strong> Acellular; Capsid + Nucleic acid. Follow lytic (lysis) or lysogenic (prophage) cycles.</li>
+        <li><strong>Media:</strong> <em>Selective</em> (e.g. MacConkey agar inhibits Gram-positive), <em>Differential</em> (e.g. Blood agar hemolysis).</li>
+        <li><strong>Growth Curve:</strong> Lag Phase (adaptation) -> Log/Exponential Phase ($N_t = N_0 \cdot 2^n$) -> Stationary Phase -> Death Phase.</li>
+      </ul>
+    </div>
+
+    <div class="codex-unit" style="border-bottom: none;">
+      <h3>Unit III: Microbial Metabolism</h3>
+      <ul>
+        <li><strong>Aerobic Respiration:</strong> Complete glucose oxidation via Glycolysis, TCA, and Electron Transport Chain (ETC). $O_2$ is terminal electron acceptor, generating ~32-38 ATP via rotary $F_0F_1$ ATP Synthase.</li>
+        <li><strong>Entner-Doudoroff (ED) Pathway:</strong> Unique to <em>Pseudomonas</em>, <em>Rhizobium</em>. Key intermediate: <strong>2-keto-3-deoxy-6-phosphogluconate (KDPG)</strong>. Net yield: <strong>1 ATP, 1 NADPH, 1 NADH</strong> per glucose!</li>
+        <li><strong>Fermentation:</strong> Re-oxidizes NADH back to $NAD^+$ in absence of $O_2$ (Lactate / Ethanol reduction).</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.bgmTimer = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playTone(freq, type = 'sine', duration = 0.2, gainVal = 0.15) {
+        if (!this.enabled) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+      playCollect() {
+        this.playTone(523.25, 'sine', 0.1, 0.2);
+        setTimeout(() => this.playTone(659.25, 'sine', 0.15, 0.2), 60);
+        setTimeout(() => this.playTone(783.99, 'sine', 0.2, 0.2), 120);
+      }
+      playCorrect() {
+        this.playTone(440, 'triangle', 0.12, 0.25);
+        setTimeout(() => this.playTone(880, 'triangle', 0.25, 0.25), 100);
+      }
+      playWrong() {
+        this.playTone(180, 'sawtooth', 0.2, 0.2);
+        setTimeout(() => this.playTone(130, 'sawtooth', 0.35, 0.25), 150);
+      }
+      playLaser() {
+        if (!this.enabled) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.15);
+        } catch(e) {}
+      }
+      playFanfare() {
+        const notes = [440, 554.37, 659.25, 880, 1108.73];
+        notes.forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.3, 0.25), i * 140);
+        });
+      }
+      startAmbientDrone() {
+        if (!this.enabled) return;
+        this.init();
+        if (this.bgmTimer) return;
+        let step = 0;
+        const bassNotes = [110, 130.81, 146.83, 164.81];
+        this.bgmTimer = setInterval(() => {
+          if (!this.enabled) return;
+          const note = bassNotes[step % bassNotes.length];
+          this.playTone(note, 'sine', 1.2, 0.05);
+          step++;
+        }, 1200);
+      }
+      stopAmbient() {
+        if (this.bgmTimer) {
+          clearInterval(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      }
+    }
+
+    const sound = new AudioEngine();
+
+    const SYLLABUS_QUESTIONS = {
+      1: [
+        {
+          unit: "UNIT I: HISTORY & SCOPE",
+          q: "Which scientist disproved spontaneous generation using the iconic swan-neck flask experiment?",
+          options: ["Antonie van Leeuwenhoek", "Louis Pasteur", "Robert Koch", "Alexander Fleming"],
+          answer: 1,
+          explanation: "Louis Pasteur proved that airborne microorganisms contaminate broths, ending the spontaneous generation debate."
+        },
+        {
+          unit: "UNIT I: CELL WALL BIOCHEMISTRY",
+          q: "What repeating disaccharide units constitute the backbone of bacterial peptidoglycan?",
+          options: ["N-acetylglucosamine (NAG) & N-acetylmuramic acid (NAM)", "Glucose & Fructose", "Cellulose & Chitin", "Ribose & Deoxyribose"],
+          answer: 0,
+          explanation: "Peptidoglycan consists of alternating NAG and NAM connected by beta-(1,4)-glycosidic bonds and peptide cross-links."
+        },
+        {
+          unit: "UNIT I: PROKARYOTE VS EUKARYOTE",
+          q: "What is the sedimentation coefficient of prokaryotic ribosomes compared to eukaryotic cytoplasmic ribosomes?",
+          options: ["70S in Prokaryotes vs 80S in Eukaryotes", "80S in Prokaryotes vs 70S in Eukaryotes", "50S in Prokaryotes vs 60S in Eukaryotes", "Equal (70S in both)"],
+          answer: 0,
+          explanation: "Prokaryotes have 70S ribosomes (50S + 30S subunits), whereas Eukaryotes possess 80S ribosomes (60S + 40S subunits)."
+        }
+      ],
+      2: [
+        {
+          unit: "UNIT II: GRAM STAIN TAXONOMY",
+          q: "Why do Gram-negative bacteria appear pink/red after the Gram staining procedure?",
+          options: ["They retain crystal violet in thick peptidoglycan", "Thin peptidoglycan loses crystal violet during alcohol decolorization; counterstained by safranin", "They lack cell membranes completely", "Their peptidoglycan contains iodine deposits"],
+          answer: 1,
+          explanation: "Ethanol dissolves the lipid-rich outer membrane of Gram-negative bacteria, leaching out the crystal violet-iodine complex, enabling safranin counterstaining."
+        },
+        {
+          unit: "UNIT II: GROWTH PHASES",
+          q: "During which phase of the bacterial growth curve is the population undergoing maximal, constant binary fission?",
+          options: ["Lag Phase", "Log (Exponential) Phase", "Stationary Phase", "Death Phase"],
+          answer: 1,
+          explanation: "In the Log/Exponential phase, bacteria divide at their maximal rate determined by environmental conditions (Nt = N0 * 2^n)."
+        },
+        {
+          unit: "UNIT II: CULTURE MEDIA TYPES",
+          q: "MacConkey agar contains bile salts and crystal violet to inhibit Gram-positive bacteria. This classifies it as:",
+          options: ["Selective medium", "Enriched non-selective broth", "Anaerobic transport agar only", "Pure synthetic salt water"],
+          answer: 0,
+          explanation: "Selective media contain ingredients that suppress the growth of unwanted organisms while encouraging the desired ones."
+        }
+      ],
+      3: [
+        {
+          unit: "UNIT III: METABOLISM & ED PATHWAY",
+          q: "What is the key hallmark intermediate of the Entner-Doudoroff (ED) pathway in Pseudomonas?",
+          options: ["2-keto-3-deoxy-6-phosphogluconate (KDPG)", "Oxaloacetate", "Lactic acid polymer", "Ribulose-1,5-bisphosphate"],
+          answer: 0,
+          explanation: "The ED pathway uniquely generates KDPG, which is cleaved by KDPG aldolase into pyruvate and glyceraldehyde-3-phosphate."
+        },
+        {
+          unit: "UNIT III: ENERGETIC YIELD",
+          q: "What is the net ATP and cofactor yield of the Entner-Doudoroff (ED) pathway per molecule of glucose?",
+          options: ["1 ATP, 1 NADPH, 1 NADH", "2 ATP, 2 NADH only", "36 ATP, 10 NADH", "0 ATP, 4 FADH2"],
+          answer: 0,
+          explanation: "The ED pathway yields 1 ATP, 1 NADPH, and 1 NADH per glucose, making it distinct from standard Embden-Meyerhof Glycolysis (2 ATP, 2 NADH)."
+        },
+        {
+          unit: "UNIT III: RESPIRATION VS FERMENTATION",
+          q: "What is the primary biological objective of fermentation in bacteria when oxygen is absent?",
+          options: ["To pump protons across complex IV", "To regenerate NAD+ from NADH so glycolysis can continue", "To synthesize peptidoglycan directly", "To double the flagella count"],
+          answer: 1,
+          explanation: "Fermentation re-oxidizes NADH back into NAD+, ensuring that glycolysis continues generating ATP via substrate-level phosphorylation."
+        }
+      ]
+    };
+
+    class Particle {
+      constructor(x, y, color, speed = 2, size = 3, life = 1.0) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        const angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(angle) * (Math.random() * speed);
+        this.vy = Math.sin(angle) * (Math.random() * speed);
+        this.size = Math.random() * size + 1.5;
+        this.life = life;
+        this.maxLife = life;
+      }
+      update(dt) {
+        this.x += this.vx * 60 * dt;
+        this.y += this.vy * 60 * dt;
+        this.life -= dt;
+      }
+      draw(ctx) {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    class GameEngine {
+      constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+
+        this.level = 1;
+        this.score = 0;
+        this.streak = 0;
+        this.correctAnswers = 0;
+        this.totalQuestions = 0;
+        this.progress = 0;
+        this.isPaused = false;
+        this.isPlaying = false;
+        this.lastTime = performance.now();
+
+        this.studentName = "Aarav Sharma";
+        this.studentRoll = "12214983";
+        this.studentUniv = "Lovely Professional University (LPU)";
+
+        this.keys = {};
+        this.mouse = { x: this.width / 2, y: this.height / 2, down: false };
+        this.particles = [];
+        this.levelState = {};
+
+        this.resize();
+        this.bindEvents();
+      }
+
+      resize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+      }
+
+      bindEvents() {
+        window.addEventListener('resize', () => this.resize());
+
+        window.addEventListener('keydown', (e) => {
+          this.keys[e.key.toLowerCase()] = true;
+          if (e.key === ' ' && this.level === 3) this.handleLevel3Action();
+        });
+
+        window.addEventListener('keyup', (e) => {
+          this.keys[e.key.toLowerCase()] = false;
+        });
+
+        this.canvas.addEventListener('mousemove', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          this.mouse.x = e.clientX - rect.left;
+          this.mouse.y = e.clientY - rect.top;
+        });
+
+        this.canvas.addEventListener('mousedown', (e) => {
+          this.mouse.down = true;
+          this.handleCanvasClick(e);
+        });
+
+        this.canvas.addEventListener('mouseup', () => this.mouse.down = false);
+
+        document.getElementById('btn-start-game').addEventListener('click', () => this.startGame());
+        document.getElementById('btn-next-level').addEventListener('click', () => this.nextLevel());
+        document.getElementById('btn-replay').addEventListener('click', () => this.restartGame());
+
+        document.getElementById('btn-sound').addEventListener('click', () => {
+          sound.enabled = !sound.enabled;
+          document.getElementById('btn-sound').innerText = sound.enabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+          if (!sound.enabled) sound.stopAmbient();
+          else sound.startAmbientDrone();
+        });
+
+        document.getElementById('btn-pause').addEventListener('click', () => {
+          this.isPaused = !this.isPaused;
+          document.getElementById('btn-pause').innerText = this.isPaused ? "▶️ Resume" : "⏸️ Pause";
+        });
+
+        const codex = document.getElementById('codex-modal');
+        document.getElementById('btn-codex').addEventListener('click', () => codex.classList.add('active'));
+        document.getElementById('btn-close-codex').addEventListener('click', () => codex.classList.remove('active'));
+      }
+
+      startGame() {
+        this.studentName = document.getElementById('input-student-name').value.trim() || "Aarav Sharma";
+        this.studentRoll = document.getElementById('input-student-roll').value.trim() || "12214983";
+        this.studentUniv = document.getElementById('input-student-univ').value.trim();
+
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('hud').style.display = 'flex';
+        document.getElementById('bottom-prompt').style.display = 'flex';
+
+        this.isPlaying = true;
+        this.level = 1;
+        this.score = 0;
+        this.streak = 0;
+        this.correctAnswers = 0;
+        this.totalQuestions = 0;
+
+        sound.init();
+        sound.startAmbientDrone();
+        this.initLevel(1);
+
+        requestAnimationFrame((t) => this.gameLoop(t));
+      }
+
+      initLevel(lvl) {
+        this.level = lvl;
+        this.progress = 0;
+        this.particles = [];
+        this.updateHUD();
+
+        const hudLevelName = document.getElementById('hud-level-name');
+        const hudSubDesc = document.getElementById('hud-sub-desc');
+        const promptText = document.getElementById('prompt-text');
+
+        if (lvl === 1) {
+          hudLevelName.innerText = "UNIT I: CELLULAR ARCHITECT";
+          hudSubDesc.innerText = "Organelle Assembly & Osmotic Defense";
+          promptText.innerHTML = "Navigate your <span class='key-badge'>Nanoprobe</span>. Collect <strong>Peptidoglycan (Murein)</strong> and <strong>70S Ribosomes</strong> while dodging toxins!";
+
+          this.levelState = {
+            probe: { x: this.width / 2, y: this.height / 2, radius: 22, vx: 0, vy: 0 },
+            cellCore: { x: this.width / 2, y: this.height / 2, radius: 140 },
+            items: [],
+            toxins: [],
+            quizCooldown: 7.0
+          };
+          this.spawnLevel1Entities();
+        } else if (lvl === 2) {
+          hudLevelName.innerText = "UNIT II: COLONY COMMANDER";
+          hudSubDesc.innerText = "Diversity, Gram-Taxonomy & Growth Curve Kinetics";
+          promptText.innerHTML = "Manage the <strong>Petri Dish</strong>! Click invading <strong>Bacteriophages</strong> to slice viral DNA, and harvest <strong>Log-phase colonies</strong>!";
+
+          this.levelState = {
+            dishRadius: Math.min(this.width, this.height) * 0.38,
+            dishCenter: { x: this.width / 2, y: this.height / 2 },
+            colonies: [],
+            phages: [],
+            growthPhase: 'LAG',
+            phaseTimer: 0,
+            quizCooldown: 8.0
+          };
+          this.spawnLevel2Colonies();
+        } else if (lvl === 3) {
+          hudLevelName.innerText = "UNIT III: THE METABOLIC ENGINE";
+          hudSubDesc.innerText = "Respiration, Fermentation & Entner-Doudoroff Pathway";
+          promptText.innerHTML = "Tap <span class='key-badge'>SPACEBAR</span> or click the <strong>ATP Synthase Turbine</strong> to pump protons ($H^+$) and trigger the <strong>ED Pathway</strong>!";
+
+          this.levelState = {
+            atpGenerated: 0,
+            targetAtp: 1000,
+            rotorAngle: 0,
+            rotorSpeed: 0,
+            protonGradient: 60,
+            oxygenLevel: 90,
+            pathwayMode: 'AEROBIC',
+            quizCooldown: 6.0
+          };
+        }
+      }
+
+      spawnLevel1Entities() {
+        const types = [
+          { type: 'peptidoglycan', color: '#00f5d4', label: 'NAM-NAG Unit', pts: 150 },
+          { type: 'ribosome', color: '#ffd166', label: '70S Ribosome', pts: 200 },
+          { type: 'plasmid', color: '#00bbf9', label: 'R-Plasmid DNA', pts: 250 },
+          { type: 'flagellum', color: '#f72585', label: 'Flagellar Rotor', pts: 300 }
+        ];
+
+        for (let i = 0; i < 8; i++) {
+          const itemType = types[Math.floor(Math.random() * types.length)];
+          this.levelState.items.push({
+            x: Math.random() * (this.width - 120) + 60,
+            y: Math.random() * (this.height - 140) + 80,
+            radius: 16,
+            ...itemType
+          });
+        }
+
+        for (let i = 0; i < 4; i++) {
+          this.levelState.toxins.push({
+            x: Math.random() * this.width,
+            y: Math.random() * this.height,
+            radius: 18,
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3,
+            color: '#ef4444'
+          });
+        }
+      }
+
+      updateLevel1(dt) {
+        const state = this.levelState;
+        const probe = state.probe;
+
+        let dx = 0, dy = 0;
+        if (this.keys['w'] || this.keys['arrowup']) dy -= 1;
+        if (this.keys['s'] || this.keys['arrowdown']) dy += 1;
+        if (this.keys['a'] || this.keys['arrowleft']) dx -= 1;
+        if (this.keys['d'] || this.keys['arrowright']) dx += 1;
+
+        if (dx !== 0 || dy !== 0) {
+          probe.vx += dx * 28 * dt;
+          probe.vy += dy * 28 * dt;
+        } else {
+          probe.vx += (this.mouse.x - probe.x) * 0.04;
+          probe.vy += (this.mouse.y - probe.y) * 0.04;
+        }
+
+        probe.vx *= 0.88;
+        probe.vy *= 0.88;
+        probe.x += probe.vx;
+        probe.y += probe.vy;
+
+        probe.x = Math.max(30, Math.min(this.width - 30, probe.x));
+        probe.y = Math.max(70, Math.min(this.height - 50, probe.y));
+
+        for (let i = state.items.length - 1; i >= 0; i--) {
+          const it = state.items[i];
+          const dist = Math.hypot(probe.x - it.x, probe.y - it.y);
+          if (dist < probe.radius + it.radius) {
+            sound.playCollect();
+            this.score += it.pts;
+            this.streak++;
+            for (let p = 0; p < 12; p++) this.particles.push(new Particle(it.x, it.y, it.color, 4, 3));
+            state.items.splice(i, 1);
+            this.progress = Math.min(100, this.progress + 14);
+            this.updateHUD();
+
+            setTimeout(() => {
+              if (this.level === 1 && state.items.length < 8) {
+                const types = [
+                  { type: 'peptidoglycan', color: '#00f5d4', label: 'NAM-NAG Unit', pts: 150 },
+                  { type: 'ribosome', color: '#ffd166', label: '70S Ribosome', pts: 200 },
+                  { type: 'plasmid', color: '#00bbf9', label: 'R-Plasmid DNA', pts: 250 },
+                  { type: 'flagellum', color: '#f72585', label: 'Flagellar Rotor', pts: 300 }
+                ];
+                state.items.push({
+                  x: Math.random() * (this.width - 120) + 60,
+                  y: Math.random() * (this.height - 140) + 80,
+                  radius: 16,
+                  ...types[Math.floor(Math.random() * types.length)]
+                });
+              }
+            }, 800);
+
+            if (this.progress >= 100) {
+              this.levelCleared();
+              return;
+            }
+          }
+        }
+
+        state.toxins.forEach(tox => {
+          tox.x += tox.vx;
+          tox.y += tox.vy;
+          if (tox.x < 30 || tox.x > this.width - 30) tox.vx *= -1;
+          if (tox.y < 80 || tox.y > this.height - 50) tox.vy *= -1;
+
+          const dist = Math.hypot(probe.x - tox.x, probe.y - tox.y);
+          if (dist < probe.radius + tox.radius) {
+            sound.playWrong();
+            this.streak = 0;
+            this.score = Math.max(0, this.score - 50);
+            this.updateHUD();
+            tox.vx = (Math.random() - 0.5) * 6;
+            tox.vy = (Math.random() - 0.5) * 6;
+            for (let p = 0; p < 8; p++) this.particles.push(new Particle(probe.x, probe.y, '#ef4444', 3, 2));
+          }
+        });
+
+        state.quizCooldown -= dt;
+        if (state.quizCooldown <= 0) {
+          state.quizCooldown = 12.0;
+          this.triggerQuiz(1);
+        }
+      }
+
+      drawLevel1() {
+        const ctx = this.ctx;
+        const state = this.levelState;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 245, 212, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.width / 2, this.height / 2, Math.min(this.width, this.height) * 0.44, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        const core = state.cellCore;
+        ctx.save();
+        ctx.translate(core.x, core.y);
+        ctx.strokeStyle = '#00f5d4';
+        ctx.lineWidth = 6;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(0, 245, 212, 0.5)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, core.radius * 1.5, core.radius * 0.9, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#f72585';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const time = performance.now() * 0.005;
+        ctx.moveTo(-core.radius * 1.5, 0);
+        for (let x = 0; x < 120; x += 5) {
+          ctx.lineTo(-core.radius * 1.5 - x, Math.sin(time + x * 0.1) * 16);
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let a = 0; a < Math.PI * 2; a += 0.2) {
+          const r = 35 + Math.sin(a * 5 + time) * 12;
+          const px = Math.cos(a) * r;
+          const py = Math.sin(a) * r;
+          if (a === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255, 209, 102, 0.8)';
+        ctx.font = '11px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText("Prokaryotic Nucleoid (Circular DNA)", 0, 4);
+        ctx.restore();
+
+        state.items.forEach(it => {
+          ctx.save();
+          ctx.translate(it.x, it.y);
+          ctx.fillStyle = it.color;
+          ctx.shadowBlur = 14;
+          ctx.shadowColor = it.color;
+          ctx.beginPath();
+          ctx.arc(0, 0, it.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 10px Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText(it.label, 0, it.radius + 14);
+          ctx.restore();
+        });
+
+        state.toxins.forEach(tox => {
+          ctx.save();
+          ctx.translate(tox.x, tox.y);
+          ctx.fillStyle = tox.color;
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(0, 0, tox.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fca5a5';
+          ctx.font = '9px Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText("Osmotic Lysis", 0, tox.radius + 12);
+          ctx.restore();
+        });
+
+        const probe = state.probe;
+        ctx.save();
+        ctx.translate(probe.x, probe.y);
+        ctx.fillStyle = '#00f5d4';
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = '#00f5d4';
+        ctx.beginPath();
+        ctx.arc(0, 0, probe.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, probe.radius * 0.65, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      spawnLevel2Colonies() {
+        const state = this.levelState;
+        const center = state.dishCenter;
+        const r = state.dishRadius;
+
+        for (let i = 0; i < 6; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = Math.random() * (r * 0.75);
+          const isGramPos = Math.random() > 0.5;
+          state.colonies.push({
+            x: center.x + Math.cos(angle) * dist,
+            y: center.y + Math.sin(angle) * dist,
+            radius: 12 + Math.random() * 8,
+            color: isGramPos ? '#9333ea' : '#f43f5e',
+            species: isGramPos ? 'S. aureus (Gram+)' : 'E. coli (Gram-)'
+          });
+        }
+      }
+
+      updateLevel2(dt) {
+        const state = this.levelState;
+        state.phaseTimer += dt;
+
+        if (state.phaseTimer < 10) state.growthPhase = 'LAG PHASE (Adaptation)';
+        else if (state.phaseTimer < 25) state.growthPhase = 'LOG / EXPONENTIAL PHASE (Max Division)';
+        else state.growthPhase = 'STATIONARY PHASE (Nutrient Saturation)';
+
+        if (Math.random() < 0.035 && state.phages.length < 7) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = state.dishRadius + 40;
+          state.phages.push({
+            x: state.dishCenter.x + Math.cos(angle) * dist,
+            y: state.dishCenter.y + Math.sin(angle) * dist,
+            targetColony: state.colonies[Math.floor(Math.random() * state.colonies.length)],
+            speed: 1.8,
+            radius: 14
+          });
+        }
+
+        for (let i = state.phages.length - 1; i >= 0; i--) {
+          const ph = state.phages[i];
+          if (ph.targetColony) {
+            const dx = ph.targetColony.x - ph.x;
+            const dy = ph.targetColony.y - ph.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 5) {
+              ph.x += (dx / dist) * ph.speed;
+              ph.y += (dy / dist) * ph.speed;
+            } else {
+              sound.playWrong();
+              ph.targetColony.radius = Math.max(6, ph.targetColony.radius - 4);
+              this.particles.push(new Particle(ph.x, ph.y, '#f43f5e', 4, 3));
+              state.phages.splice(i, 1);
+            }
+          }
+        }
+
+        state.quizCooldown -= dt;
+        if (state.quizCooldown <= 0) {
+          state.quizCooldown = 13.0;
+          this.triggerQuiz(2);
+        }
+
+        if (this.progress >= 100) this.levelCleared();
+      }
+
+      drawLevel2() {
+        const ctx = this.ctx;
+        const state = this.levelState;
+        const center = state.dishCenter;
+        const r = state.dishRadius;
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(16, 28, 48, 0.7)';
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(0, 245, 212, 0.4)';
+        ctx.lineWidth = 8;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = 'rgba(0, 245, 212, 0.3)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffd166';
+        ctx.font = 'bold 14px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText("CURRENT PHASE: " + state.growthPhase, center.x, center.y - r + 35);
+        ctx.restore();
+
+        state.colonies.forEach(col => {
+          ctx.save();
+          ctx.fillStyle = col.color;
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = col.color;
+          ctx.beginPath();
+          ctx.arc(col.x, col.y, col.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 10px Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText(col.species, col.x, col.y + col.radius + 12);
+          ctx.restore();
+        });
+
+        state.phages.forEach(ph => {
+          ctx.save();
+          ctx.translate(ph.x, ph.y);
+          ctx.fillStyle = '#00bbf9';
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = '#00bbf9';
+          ctx.beginPath();
+          ctx.arc(0, 0, ph.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = '9px Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText("Phage T4", 0, -ph.radius - 4);
+          ctx.restore();
+        });
+      }
+
+      handleLevel3Action() {
+        if (this.level !== 3) return;
+        const state = this.levelState;
+
+        sound.playLaser();
+        state.rotorSpeed += 0.25;
+
+        let atpBurst = 32;
+        let note = "Aerobic Respiration: +32 ATP via ETC";
+
+        if (state.pathwayMode === 'ED_PATHWAY') {
+          atpBurst = 14;
+          note = "Entner-Doudoroff (ED): KDPG yields +1 ATP, +1 NADPH, +1 NADH!";
+        } else if (state.pathwayMode === 'FERMENTATION') {
+          atpBurst = 8;
+          note = "Fermentation Active: Regenerating NAD+!";
+        }
+
+        state.atpGenerated += atpBurst;
+        this.score += atpBurst * 10;
+        this.streak++;
+        this.progress = Math.min(100, Math.floor((state.atpGenerated / state.targetAtp) * 100));
+        this.updateHUD();
+
+        document.getElementById('prompt-text').innerHTML = `⚡ <strong>${note}</strong> (Total ATP: ${state.atpGenerated})`;
+
+        const cx = this.width / 2;
+        const cy = this.height / 2;
+        for (let i = 0; i < 16; i++) this.particles.push(new Particle(cx, cy, '#ffd166', 5, 4));
+
+        if (this.progress >= 100) this.levelCleared();
+      }
+
+      updateLevel3(dt) {
+        const state = this.levelState;
+        state.rotorAngle += state.rotorSpeed;
+        state.rotorSpeed *= 0.94;
+
+        state.oxygenLevel = 50 + Math.sin(performance.now() * 0.001) * 45;
+        if (state.oxygenLevel > 60) state.pathwayMode = 'AEROBIC';
+        else if (state.oxygenLevel > 25) state.pathwayMode = 'ED_PATHWAY';
+        else state.pathwayMode = 'FERMENTATION';
+
+        state.quizCooldown -= dt;
+        if (state.quizCooldown <= 0) {
+          state.quizCooldown = 11.0;
+          this.triggerQuiz(3);
+        }
+      }
+
+      drawLevel3() {
+        const ctx = this.ctx;
+        const state = this.levelState;
+        const cx = this.width / 2;
+        const cy = this.height / 2;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 245, 212, 0.3)';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(0, cy + 90);
+        ctx.lineTo(this.width, cy + 90);
+        ctx.stroke();
+        ctx.restore();
+
+        const complexes = [
+          { name: "Complex I (NADH DH)", x: cx - 280, color: '#38bdf8' },
+          { name: "Complex II (Succinate DH)", x: cx - 140, color: '#00f5d4' },
+          { name: "Complex III (Cyt bc1)", x: cx + 140, color: '#f72585' },
+          { name: "Complex IV (Cyt c Oxidase)", x: cx + 280, color: '#ffd166' }
+        ];
+
+        complexes.forEach(c => {
+          ctx.save();
+          ctx.fillStyle = c.color;
+          ctx.shadowBlur = 14;
+          ctx.shadowColor = c.color;
+          ctx.fillRect(c.x - 35, cy + 50, 70, 80);
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 10px Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText(c.name, c.x, cy + 150);
+          ctx.restore();
+        });
+
+        // ATP Synthase Rotary Turbine
+        ctx.save();
+        ctx.translate(cx, cy - 20);
+        ctx.rotate(state.rotorAngle);
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI * 2) / 6;
+          const sx = Math.cos(a) * 45;
+          const sy = Math.sin(a) * 45;
+          ctx.fillStyle = i % 2 === 0 ? '#ffd166' : '#f72585';
+          ctx.shadowBlur = 18;
+          ctx.shadowColor = ctx.fillStyle;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 20, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(10, 15, 30, 0.9)';
+        ctx.strokeStyle = 'var(--primary)';
+        ctx.lineWidth = 2;
+        ctx.roundRect(cx - 180, cy - 230, 360, 80, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffd166';
+        ctx.font = 'bold 13px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText("ACTIVE METABOLIC REGIME: " + state.pathwayMode, cx, cy - 200);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '11px Segoe UI';
+        if (state.pathwayMode === 'AEROBIC') {
+          ctx.fillText("O2 Terminal Acceptor • Full ETC (~32-38 ATP)", cx, cy - 175);
+        } else if (state.pathwayMode === 'ED_PATHWAY') {
+          ctx.fillText("Entner-Doudoroff Active! KDPG Cleavage (1 ATP, 1 NADPH, 1 NADH)", cx, cy - 175);
+        } else {
+          ctx.fillText("Fermentation Active • NAD+ Regeneration!", cx, cy - 175);
+        }
+        ctx.restore();
+      }
+
+      triggerQuiz(unitNum) {
+        if (!SYLLABUS_QUESTIONS[unitNum]) return;
+        const qList = SYLLABUS_QUESTIONS[unitNum];
+        const qData = qList[Math.floor(Math.random() * qList.length)];
+
+        const modal = document.getElementById('bio-quiz-modal');
+        document.getElementById('quiz-badge').innerText = qData.unit;
+        document.getElementById('quiz-question').innerText = qData.q;
+        const optContainer = document.getElementById('quiz-options');
+        const feedback = document.getElementById('quiz-feedback');
+        optContainer.innerHTML = '';
+        feedback.innerText = '';
+
+        qData.options.forEach((optText, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'quiz-opt-btn';
+          btn.innerText = `${String.fromCharCode(65 + idx)}. ${optText}`;
+          btn.onclick = () => {
+            this.totalQuestions++;
+            if (idx === qData.answer) {
+              sound.playCorrect();
+              this.score += 400;
+              this.streak++;
+              this.correctAnswers++;
+              this.progress = Math.min(100, this.progress + 15);
+              feedback.style.color = '#00f5d4';
+              feedback.innerHTML = `✔ Correct! ${qData.explanation}`;
+              btn.style.background = 'rgba(0, 245, 212, 0.3)';
+              btn.style.borderColor = '#00f5d4';
+            } else {
+              sound.playWrong();
+              this.streak = 0;
+              feedback.style.color = '#f72585';
+              feedback.innerHTML = `✘ Incorrect. ${qData.explanation}`;
+              btn.style.background = 'rgba(247, 37, 133, 0.3)';
+              btn.style.borderColor = '#f72585';
+            }
+            this.updateHUD();
+
+            setTimeout(() => {
+              modal.classList.remove('active');
+              if (this.progress >= 100) this.levelCleared();
+            }, 2000);
+          };
+          optContainer.appendChild(btn);
+        });
+
+        modal.classList.add('active');
+      }
+
+      handleCanvasClick(e) {
+        if (this.level === 2) {
+          const state = this.levelState;
+          for (let i = state.phages.length - 1; i >= 0; i--) {
+            const ph = state.phages[i];
+            const dist = Math.hypot(this.mouse.x - ph.x, this.mouse.y - ph.y);
+            if (dist < ph.radius + 18) {
+              sound.playLaser();
+              this.score += 250;
+              this.streak++;
+              this.progress = Math.min(100, this.progress + 10);
+              this.updateHUD();
+              for (let p = 0; p < 14; p++) this.particles.push(new Particle(ph.x, ph.y, '#00bbf9', 4, 3));
+              state.phages.splice(i, 1);
+              return;
+            }
+          }
+        } else if (this.level === 3) {
+          this.handleLevel3Action();
+        }
+      }
+
+      levelCleared() {
+        sound.playFanfare();
+        const clearModal = document.getElementById('level-clear-screen');
+        const clearTitle = document.getElementById('level-clear-title');
+        const clearMsg = document.getElementById('level-clear-msg');
+        const clearConcepts = document.getElementById('level-clear-concepts');
+
+        if (this.level === 1) {
+          clearTitle.innerText = "UNIT I: CELLULAR VANGUARD MASTERED!";
+          clearMsg.innerText = "You assembled the prokaryotic cell architecture and confirmed the principles of Pasteur & Koch!";
+          clearConcepts.innerHTML = "✔ Peptidoglycan cell wall integrity stabilized.<br>✔ 70S Ribosomal protein synthesis activated.<br>✔ Chemotactic flagellar motility established.";
+        } else if (this.level === 2) {
+          clearTitle.innerText = "UNIT II: COLONY COMMANDER MASTERED!";
+          clearMsg.innerText = "You navigated the bacterial growth curve and defended against bacteriophages!";
+          clearConcepts.innerHTML = "✔ Gram-Positive vs Gram-Negative taxonomy resolved.<br>✔ Exponential Log-phase growth kinetics sustained.<br>✔ Bacteriophage viral DNA intercepted.";
+        } else if (this.level === 3) {
+          this.showFinalCertificate();
+          return;
+        }
+
+        clearModal.classList.add('active');
+      }
+
+      nextLevel() {
+        document.getElementById('level-clear-screen').classList.remove('active');
+        if (this.level < 3) this.initLevel(this.level + 1);
+        else this.showFinalCertificate();
+      }
+
+      showFinalCertificate() {
+        sound.playFanfare();
+        document.getElementById('hud').style.display = 'none';
+        document.getElementById('bottom-prompt').style.display = 'none';
+
+        const cert = document.getElementById('certificate-screen');
+        document.getElementById('cert-student-name').innerText = this.studentName.toUpperCase();
+        document.getElementById('cert-student-roll').innerText = this.studentRoll;
+        document.getElementById('cert-univ-display').innerText = this.studentUniv.toUpperCase();
+
+        document.getElementById('cert-final-score').innerText = this.score;
+        const accuracy = this.totalQuestions > 0 ? Math.round((this.correctAnswers / this.totalQuestions) * 100) : 100;
+        document.getElementById('cert-accuracy').innerText = `${accuracy}% (${this.correctAnswers}/${this.totalQuestions} Questions Correct)`;
+
+        cert.classList.add('active');
+      }
+
+      restartGame() {
+        document.getElementById('certificate-screen').classList.remove('active');
+        document.getElementById('start-screen').classList.add('active');
+      }
+
+      updateHUD() {
+        document.getElementById('hud-score').innerText = String(this.score).padStart(4, '0');
+        document.getElementById('hud-streak').innerText = `${this.streak}x`;
+        document.getElementById('hud-progress-fill').style.width = `${this.progress}%`;
+        document.getElementById('hud-progress-text').innerText = `${this.progress}% Completed`;
+      }
+
+      gameLoop(timestamp) {
+        const dt = Math.min(0.1, (timestamp - this.lastTime) / 1000);
+        this.lastTime = timestamp;
+
+        if (this.isPlaying && !this.isPaused) {
+          this.ctx.clearRect(0, 0, this.width, this.height);
+
+          if (this.level === 1) {
+            this.updateLevel1(dt);
+            this.drawLevel1();
+          } else if (this.level === 2) {
+            this.updateLevel2(dt);
+            this.drawLevel2();
+          } else if (this.level === 3) {
+            this.updateLevel3(dt);
+            this.drawLevel3();
+          }
+
+          for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.update(dt);
+            p.draw(this.ctx);
+            if (p.life <= 0) this.particles.splice(i, 1);
+          }
+        }
+
+        requestAnimationFrame((t) => this.gameLoop(t));
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.game = new GameEngine();
+    });
+  </script>
+</body>
+</html>
